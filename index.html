@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cipher — The Content Machine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg:        #080B10;
+    --surface:   #0E1318;
+    --border:    #1C2430;
+    --border-hi: #2A3545;
+    --accent:    #00E5FF;
+    --accent2:   #7B61FF;
+    --danger:    #FF4D6D;
+    --success:   #00C896;
+    --text:      #E8EDF2;
+    --text-muted:#7A8A9A;
+    --text-dim:  #3D4F62;
+    --card:      #111820;
+    --font-display: 'Syne', sans-serif;
+    --font-body:    'Inter', sans-serif;
+    --radius:    12px;
+    --radius-lg: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── LANGUAGE SCREEN ── */
+  #lang-screen {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    z-index: 100;
+  }
+
+  .lang-logo {
+    font-family: var(--font-display);
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+
+  .lang-logo span {
+    color: var(--accent);
+  }
+
+  .lang-subtitle {
+    color: var(--text-muted);
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-top: -36px;
+  }
+
+  .lang-grid {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .lang-btn {
+    padding: 16px 32px;
+    border: 1px solid var(--border-hi);
+    background: var(--surface);
+    color: var(--text);
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 140px;
+    text-align: center;
+  }
+
+  .lang-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+
+  /* ── MAIN APP ── */
+  #app { display: none; min-height: 100vh; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(8,11,16,0.95);
+    backdrop-filter: blur(12px);
+    z-index: 50;
+  }
+
+  .logo {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .header-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── LAYOUT ── */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+
+  /* ── STEP INDICATOR ── */
+  .steps {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 48px;
+  }
+
+  .step-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border-hi);
+    transition: all 0.3s;
+  }
+
+  .step-dot.active { background: var(--accent); width: 24px; border-radius: 4px; }
+  .step-dot.done   { background: var(--success); }
+
+  /* ── INTAKE FORM ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .screen-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .screen-sub {
+    color: var(--text-muted);
+    margin-bottom: 40px;
+    font-size: 15px;
+  }
+
+  .field { margin-bottom: 24px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    transition: border-color 0.2s;
+    outline: none;
+    resize: vertical;
+  }
+
+  .field input:focus,
+  .field textarea:focus,
+  .field select:focus {
+    border-color: var(--accent);
+    background: rgba(0,229,255,0.03);
+  }
+
+  .field textarea { min-height: 90px; }
+
+  .field select option { background: var(--surface); }
+
+  /* Price buttons */
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 600px) {
+    .price-grid { grid-template-columns: repeat(2, 1fr); }
+    .screen-title { font-size: 24px; }
+    header { padding: 16px 20px; }
+    .container { padding: 32px 16px; }
+  }
+
+  .price-btn {
+    padding: 14px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-muted);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .price-btn:hover,
+  .price-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.06);
+  }
+
+  .optional-tag {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-left: 8px;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+  }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 32px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .btn-primary:hover {
+    background: #33EAFF;
+    transform: translateY(-1px);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-family: var(--font-body);
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-ghost:hover { border-color: var(--border-hi); color: var(--text); }
+
+  /* ── RESEARCH PHASE ── */
+  #research-screen {
+    display: none;
+  }
+
+  .research-header {
+    text-align: center;
+    padding: 60px 0 40px;
+  }
+
+  .research-label {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .research-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .research-sub {
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Research pipeline */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 40px 0;
+  }
+
+  .pipe-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    transition: all 0.3s;
+  }
+
+  .pipe-item.running { border-color: var(--accent); background: rgba(0,229,255,0.04); }
+  .pipe-item.done    { border-color: var(--success); background: rgba(0,200,150,0.04); }
+  .pipe-item.error   { border-color: var(--danger);  background: rgba(255,77,109,0.04); }
+
+  .pipe-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  .pipe-item.running .pipe-icon { background: rgba(0,229,255,0.15); }
+  .pipe-item.done    .pipe-icon { background: rgba(0,200,150,0.15); }
+
+  .pipe-info { flex: 1; }
+  .pipe-name { font-weight: 600; font-size: 14px; }
+  .pipe-desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .pipe-status {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .pipe-item.running .pipe-status { color: var(--accent); }
+  .pipe-item.done    .pipe-status { color: var(--success); }
+  .pipe-item.error   .pipe-status { color: var(--danger); }
+
+  .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid rgba(0,229,255,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESULTS CARDS ── */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 32px 0;
+  }
+
+  @media (max-width: 700px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .result-card:hover { border-color: var(--border-hi); }
+
+  .card-eyebrow {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .card-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.5px;
+  }
+
+  .card-link:hover { text-decoration: underline; }
+
+  .metric-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+
+  .metric {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .metric-val {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .metric-key {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .trend-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+
+  .trend-badge.rising  { background: rgba(0,200,150,0.15); color: var(--success); }
+  .trend-badge.peak    { background: rgba(0,229,255,0.15); color: var(--accent); }
+  .trend-badge.falling { background: rgba(255,77,109,0.15); color: var(--danger); }
+
+  /* ── VIRAL IDEAS SELECTION ── */
+  .ideas-section {
+    margin: 40px 0;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .section-sub {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  .idea-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .idea-card:hover { border-color: var(--border-hi); }
+
+  .idea-card.selected {
+    border-color: var(--accent2);
+    background: rgba(123,97,255,0.06);
+  }
+
+  .idea-card.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 16px; right: 16px;
+    width: 24px; height: 24px;
+    background: var(--accent2);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .idea-platform {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 8px;
+  }
+
+  .idea-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    padding-right: 32px;
+  }
+
+  .idea-mechanic {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    border-left: 2px solid var(--accent2);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+
+  /* ── STRATEGY OUTPUT ── */
+  #strategy-screen { display: none; }
+
+  .strategy-block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    margin-bottom: 20px;
+  }
+
+  .strategy-block-label {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .strategy-block-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .strategy-content {
+    font-size: 14px;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+  }
+
+  .strategy-content strong {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  /* Streaming cursor */
+  .streaming-cursor::after {
+    content: '▋';
+    color: var(--accent);
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ── SCRIPT CARDS ── */
+  .script-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .script-number {
+    font-family: var(--font-display);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+  }
+
+  .script-hook {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .script-body {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  /* ── ERROR STATE ── */
+  .error-banner {
+    padding: 14px 18px;
+    background: rgba(255,77,109,0.08);
+    border: 1px solid rgba(255,77,109,0.3);
+    border-radius: var(--radius);
+    color: #FF8099;
+    font-size: 13px;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 40px 0;
+  }
+
+  /* ── RTL SUPPORT ── */
+  [dir="rtl"] .idea-mechanic { border-left: none; border-right: 2px solid var(--accent2); }
+  [dir="rtl"] .strategy-block-label::after { display: none; }
+  [dir="rtl"] .strategy-block-label::before { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-wrap {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 24px 0;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── EXPORT ── */
+  .export-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(0,229,255,0.1);
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  /* fullwidth card */
+  .result-card.full { grid-column: 1 / -1; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     LANGUAGE SELECTION SCREEN
+═══════════════════════════════════════════ -->
+<div id="lang-screen">
+  <div>
+    <div class="lang-logo">Ci<span>ph</span>er</div>
+    <div class="lang-subtitle">The Content Machine</div>
+  </div>
+  <div class="lang-grid">
+    <button class="lang-btn" onclick="selectLang('en','ltr')">English</button>
+    <button class="lang-btn" onclick="selectLang('ar','rtl')">العربية</button>
+    <button class="lang-btn" onclick="selectLang('fr','ltr')">Français</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════ -->
+<div id="app">
+
+  <header>
+    <div class="logo">Ci<span>ph</span>er</div>
+    <div class="header-meta" id="header-meta">The Content Machine</div>
+  </header>
+
+  <div class="container">
+
+    <!-- Step dots -->
+    <div class="steps" id="steps">
+      <div class="step-dot active" id="dot-0"></div>
+      <div class="step-dot" id="dot-1"></div>
+      <div class="step-dot" id="dot-2"></div>
+      <div class="step-dot" id="dot-3"></div>
+    </div>
+
+    <!-- ── SCREEN 0: INTAKE ── -->
+    <div class="screen active" id="screen-intake">
+      <div class="screen-title" id="t-welcome">Tell me about the business.</div>
+      <div class="screen-sub" id="t-sub">7 inputs maximum. The machine does the rest.</div>
+
+      <div class="error-banner" id="intake-error"></div>
+
+      <div class="field">
+        <label id="l-btype">Business Type</label>
+        <input type="text" id="f-btype" placeholder="e.g. Skincare brand, Restaurant, Gym, Online store...">
+      </div>
+
+      <div class="field">
+        <label id="l-desc">What does it actually do?</label>
+        <textarea id="f-desc" placeholder="e.g. Sells scar removal creams, blackhead pads, and vitamin masks. Products are clinically tested and proven effective."></textarea>
+      </div>
+
+      <div class="field">
+        <label id="l-loc">Location <span class="optional-tag">(city, country)</span></label>
+        <input type="text" id="f-loc" placeholder="e.g. Beirut, Lebanon">
+      </div>
+
+      <div class="field">
+        <label id="l-price">Price Positioning</label>
+        <div class="price-grid">
+          <button class="price-btn" onclick="selectPrice(this,'Budget')" id="l-budget">Budget</button>
+          <button class="price-btn" onclick="selectPrice(this,'Midrange')" id="l-mid">Midrange</button>
+          <button class="price-btn" onclick="selectPrice(this,'Premium')" id="l-prem">Premium</button>
+          <button class="price-btn" onclick="selectPrice(this,'Luxury')" id="l-lux">Luxury</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label id="l-best">Their best thing <span class="optional-tag">(or type "nothing special")</span></label>
+        <input type="text" id="f-best" placeholder="e.g. Products are tested to be the most effective in the market — customers always come back.">
+      </div>
+
+      <div class="field">
+        <label id="l-ig">Instagram Handle <span class="optional-tag">optional</span></label>
+        <input type="text" id="f-ig" placeholder="@username">
+      </div>
+
+      <div class="field">
+        <label id="l-tk">TikTok Handle <span class="optional-tag">optional</span></label>
+        <input type="text" id="f-tk" placeholder="@username">
+      </div>
+
+      <div style="margin-top: 8px;">
+        <button class="btn-primary" onclick="startResearch()" id="btn-run">
+          <span id="btn-run-text">Run the Machine</span>
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 1: RESEARCH RUNNING ── -->
+    <div id="research-screen">
+      <div class="research-header">
+        <div class="research-label" id="t-researching">Researching</div>
+        <div class="research-title" id="t-pulling">Pulling live market intelligence</div>
+        <div class="research-sub" id="t-wait">This takes 20–40 seconds. Real data. No shortcuts.</div>
+      </div>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar"></div>
+      </div>
+
+      <div class="pipeline" id="pipeline">
+        <div class="pipe-item" id="pipe-yt">
+          <div class="pipe-icon">▶</div>
+          <div class="pipe-info">
+            <div class="pipe-name">YouTube</div>
+            <div class="pipe-desc" id="pd-yt">Viral videos in this niche</div>
+          </div>
+          <div class="pipe-status" id="ps-yt">Waiting</div>
+        </div>
+        <div class="pipe-item" id="pipe-tr">
+          <div class="pipe-icon">📈</div>
+          <div class="pipe-info">
+            <div class="pipe-name">Google Trends</div>
+            <div class="pipe-desc" id="pd-tr">Rising search interest by region</div>
+          </div>
+          <div class="pipe-status" id="ps-tr">Waiting</div>
+        </div>
+        <div class="pipe-item" id="pipe-ig">
+          <div class="pipe-icon">◈</div>
+          <div class="pipe-info">
+            <div class="pipe-name">Instagram</div>
+            <div class="pipe-desc" id="pd-ig">Top performing posts & reels</div>
+          </div>
+          <div class="pipe-status" id="ps-ig">Waiting</div>
+        </div>
+        <div class="pipe-item" id="pipe-tk">
+          <div class="pipe-icon">♪</div>
+          <div class="pipe-info">
+            <div class="pipe-name">TikTok</div>
+            <div class="pipe-desc" id="pd-tk">Trending content & hooks</div>
+          </div>
+          <div class="pipe-status" id="ps-tk">Waiting</div>
+        </div>
+        <div class="pipe-item" id="pipe-seo">
+          <div class="pipe-icon">🔍</div>
+          <div class="pipe-info">
+            <div class="pipe-name">Search Intelligence</div>
+            <div class="pipe-desc" id="pd-seo">Competitor landscape & news</div>
+          </div>
+          <div class="pipe-status" id="ps-seo">Waiting</div>
+        </div>
+        <div class="pipe-item" id="pipe-ai">
+          <div class="pipe-icon">◆</div>
+          <div class="pipe-info">
+            <div class="pipe-name">Cipher AI</div>
+            <div class="pipe-desc" id="pd-ai">Analyzing patterns & mechanics</div>
+          </div>
+          <div class="pipe-status" id="ps-ai">Waiting</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 2: VIRAL IDEAS SELECTION ── -->
+    <div class="screen" id="screen-ideas">
+      <div class="screen-title" id="t-ideas-title">What's working right now.</div>
+      <div class="screen-sub" id="t-ideas-sub">Select the ideas that resonate. The machine will reconstruct them for your client.</div>
+
+      <div class="results-grid" id="research-cards"></div>
+
+      <div class="divider"></div>
+
+      <div class="ideas-section">
+        <div class="section-title" id="t-viral-title">Viral content mechanics found</div>
+        <div class="section-sub" id="t-viral-sub">Pick 2–4 that feel right for this business. We'll build something original inspired by each one.</div>
+        <div id="ideas-list"></div>
+      </div>
+
+      <div style="margin-top: 8px; display: flex; gap: 12px; align-items: center;">
+        <button class="btn-primary" onclick="generateStrategy()" id="btn-strategy">
+          <span id="btn-strategy-text">Build the Strategy</span>
+          <span>→</span>
+        </button>
+        <span id="t-selected-count" style="font-size:13px; color: var(--text-muted);"></span>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 3: FULL STRATEGY ── -->
+    <div class="screen" id="screen-strategy">
+
+      <div class="screen-title" id="t-strat-title">Your content strategy.</div>
+      <div class="screen-sub" id="t-strat-sub">Built from real data. Every decision explained.</div>
+
+      <div class="strategy-block" id="block-diagnosis">
+        <div class="strategy-block-label" id="l-diagnosis">Market Diagnosis</div>
+        <div class="strategy-content" id="c-diagnosis"></div>
+      </div>
+
+      <div class="strategy-block" id="block-mode">
+        <div class="strategy-block-label" id="l-mode">Strategy Mode</div>
+        <div class="strategy-content" id="c-mode"></div>
+      </div>
+
+      <div class="strategy-block" id="block-format">
+        <div class="strategy-block-label" id="l-format">Dominant Format for This Market</div>
+        <div class="strategy-content" id="c-format"></div>
+      </div>
+
+      <div class="strategy-block" id="block-ideas">
+        <div class="strategy-block-label" id="l-ideas-out">Original Content Ideas</div>
+        <div class="strategy-content" id="c-ideas"></div>
+      </div>
+
+      <div class="strategy-block" id="block-scripts">
+        <div class="strategy-block-label" id="l-scripts">Ready-to-Shoot Scripts</div>
+        <div id="scripts-container"></div>
+      </div>
+
+      <div class="strategy-block" id="block-pitch">
+        <div class="strategy-block-label" id="l-pitch">How to Pitch This to Your Client</div>
+        <div class="strategy-content" id="c-pitch"></div>
+      </div>
+
+      <div class="export-row">
+        <button class="btn-primary" onclick="exportStrategy()">
+          <span id="t-export">Export Strategy</span>
+        </button>
+        <button class="btn-ghost" onclick="resetApp()">
+          <span id="t-new">New Strategy</span>
+        </button>
+      </div>
+
+    </div>
+
+  </div><!-- /container -->
+</div><!-- /app -->
+
+<script>
+// Keys are stored securely in Vercel Environment Variables
+// No keys in frontend code
+
+// ═══════════════════════════════════════════════
+//  I18N — TRANSLATIONS
+// ═══════════════════════════════════════════════
+const T = {
+  en: {
+    welcome: 'Tell me about the business.',
+    sub: '7 inputs maximum. The machine does the rest.',
+    btype: 'Business Type', desc: 'What does it actually do?',
+    loc: 'Location', price: 'Price Positioning',
+    best: 'Their best thing', ig: 'Instagram Handle', tk: 'TikTok Handle',
+    budget: 'Budget', mid: 'Midrange', prem: 'Premium', lux: 'Luxury',
+    run: 'Run the Machine',
+    researching: 'Researching', pulling: 'Pulling live market intelligence',
+    wait: 'This takes 20–40 seconds. Real data. No shortcuts.',
+    pd_yt: 'Viral videos in this niche', pd_tr: 'Rising search interest by region',
+    pd_ig: 'Top performing posts & reels', pd_tk: 'Trending content & hooks',
+    pd_seo: 'Competitor landscape & news', pd_ai: 'Analyzing patterns & mechanics',
+    ideas_title: "What's working right now.",
+    ideas_sub: 'Select the ideas that resonate. The machine will reconstruct them for your client.',
+    viral_title: 'Viral content mechanics found',
+    viral_sub: 'Pick 2–4 that feel right for this business.',
+    build: 'Build the Strategy',
+    strat_title: 'Your content strategy.',
+    strat_sub: 'Built from real data. Every decision explained.',
+    l_diagnosis: 'Market Diagnosis', l_mode: 'Strategy Mode',
+    l_format: 'Dominant Format for This Market',
+    l_ideas: 'Original Content Ideas', l_scripts: 'Ready-to-Shoot Scripts',
+    l_pitch: 'How to Pitch This to Your Client',
+    export: 'Export Strategy', new_strat: 'New Strategy',
+    selected: 'selected',
+    err_fill: 'Please fill in Business Type, Description, and Location.',
+    err_price: 'Please select a price positioning.',
+    err_select: 'Please select at least one viral idea.',
+    header: 'The Content Machine',
+  },
+  ar: {
+    welcome: 'أخبرني عن هذا النشاط التجاري.',
+    sub: '٧ حقول كحد أقصى. الآلة تتولى الباقي.',
+    btype: 'نوع النشاط التجاري', desc: 'ماذا يفعل بالضبط؟',
+    loc: 'الموقع', price: 'مستوى السعر',
+    best: 'أفضل ما يميزه', ig: 'حساب إنستغرام', tk: 'حساب تيك توك',
+    budget: 'اقتصادي', mid: 'متوسط', prem: 'مميز', lux: 'فاخر',
+    run: 'تشغيل الآلة',
+    researching: 'جارٍ البحث', pulling: 'جمع بيانات السوق الحية',
+    wait: 'يستغرق ٢٠–٤٠ ثانية. بيانات حقيقية.',
+    pd_yt: 'مقاطع فيديو رائجة في هذا المجال',
+    pd_tr: 'الاهتمام المتصاعد حسب المنطقة',
+    pd_ig: 'أفضل المنشورات والريلز أداءً',
+    pd_tk: 'المحتوى الرائج والخطافات',
+    pd_seo: 'المنافسون والأخبار', pd_ai: 'تحليل الأنماط والميكانيكيات',
+    ideas_title: 'ما يُحقق نتائج الآن.',
+    ideas_sub: 'اختر الأفكار المناسبة. ستُعيد الآلة بناءها لعميلك.',
+    viral_title: 'ميكانيكيات المحتوى الرائج المكتشفة',
+    viral_sub: 'اختر ٢–٤ أفكار تناسب هذا النشاط.',
+    build: 'بناء الاستراتيجية',
+    strat_title: 'استراتيجية المحتوى الخاصة بك.',
+    strat_sub: 'مبنية على بيانات حقيقية. كل قرار مُبرَّر.',
+    l_diagnosis: 'تشخيص السوق', l_mode: 'نمط الاستراتيجية',
+    l_format: 'الصيغة السائدة في هذا السوق',
+    l_ideas: 'أفكار محتوى أصيلة', l_scripts: 'سكريبتات جاهزة للتصوير',
+    l_pitch: 'كيف تعرض هذا على عميلك',
+    export: 'تصدير الاستراتيجية', new_strat: 'استراتيجية جديدة',
+    selected: 'محدد',
+    err_fill: 'يرجى تعبئة نوع النشاط والوصف والموقع.',
+    err_price: 'يرجى اختيار مستوى السعر.',
+    err_select: 'يرجى اختيار فكرة رائجة واحدة على الأقل.',
+    header: 'آلة المحتوى',
+  },
+  fr: {
+    welcome: 'Parlez-moi de cette activité.',
+    sub: '7 champs maximum. La machine fait le reste.',
+    btype: "Type d'activité", desc: 'Que fait-elle exactement ?',
+    loc: 'Lieu', price: 'Positionnement prix',
+    best: 'Son meilleur atout', ig: 'Compte Instagram', tk: 'Compte TikTok',
+    budget: 'Économique', mid: 'Milieu de gamme', prem: 'Premium', lux: 'Luxe',
+    run: 'Lancer la machine',
+    researching: 'Recherche en cours', pulling: 'Collecte des données de marché',
+    wait: '20 à 40 secondes. Données réelles.',
+    pd_yt: 'Vidéos virales dans ce secteur',
+    pd_tr: 'Intérêt croissant par région',
+    pd_ig: 'Meilleures publications & reels',
+    pd_tk: 'Contenus tendance & hooks',
+    pd_seo: 'Paysage concurrentiel & actualités',
+    pd_ai: 'Analyse des patterns et mécaniques',
+    ideas_title: 'Ce qui fonctionne en ce moment.',
+    ideas_sub: 'Sélectionnez les idées pertinentes. La machine les reconstruira pour votre client.',
+    viral_title: 'Mécaniques de contenu viral trouvées',
+    viral_sub: 'Choisissez 2 à 4 idées adaptées à cette activité.',
+    build: 'Construire la stratégie',
+    strat_title: 'Votre stratégie de contenu.',
+    strat_sub: 'Basée sur des données réelles. Chaque décision expliquée.',
+    l_diagnosis: 'Diagnostic marché', l_mode: 'Mode stratégique',
+    l_format: 'Format dominant sur ce marché',
+    l_ideas: 'Idées de contenu originales', l_scripts: 'Scripts prêts à tourner',
+    l_pitch: 'Comment présenter cela à votre client',
+    export: 'Exporter la stratégie', new_strat: 'Nouvelle stratégie',
+    selected: 'sélectionné(s)',
+    err_fill: 'Veuillez remplir le type, la description et le lieu.',
+    err_price: 'Veuillez sélectionner un positionnement prix.',
+    err_select: 'Veuillez sélectionner au moins une idée virale.',
+    header: 'La Machine à Contenu',
+  }
+};
+
+// ═══════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════
+let lang = 'en';
+let dir  = 'ltr';
+let selectedPrice = '';
+let selectedIdeas = [];
+let researchData  = {};
+let viralIdeas    = [];
+let businessData  = {};
+
+// ═══════════════════════════════════════════════
+//  LANGUAGE SELECTION
+// ═══════════════════════════════════════════════
+function selectLang(l, d) {
+  lang = l; dir = d;
+  document.documentElement.lang = l;
+  document.documentElement.dir  = d;
+  document.getElementById('lang-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  applyTranslations();
+}
+
+function applyTranslations() {
+  const t = T[lang];
+  document.getElementById('t-welcome').textContent       = t.welcome;
+  document.getElementById('t-sub').textContent           = t.sub;
+  document.getElementById('l-btype').textContent         = t.btype;
+  document.getElementById('l-desc').textContent          = t.desc;
+  document.getElementById('l-loc').textContent           = t.loc;
+  document.getElementById('l-price').textContent         = t.price;
+  document.getElementById('l-best').textContent          = t.best;
+  document.getElementById('l-ig').innerHTML              = t.ig + ' <span class="optional-tag">optional</span>';
+  document.getElementById('l-tk').innerHTML              = t.tk + ' <span class="optional-tag">optional</span>';
+  document.getElementById('l-budget').textContent        = t.budget;
+  document.getElementById('l-mid').textContent           = t.mid;
+  document.getElementById('l-prem').textContent          = t.prem;
+  document.getElementById('l-lux').textContent           = t.lux;
+  document.getElementById('btn-run-text').textContent    = t.run;
+  document.getElementById('t-researching').textContent   = t.researching;
+  document.getElementById('t-pulling').textContent       = t.pulling;
+  document.getElementById('t-wait').textContent          = t.wait;
+  document.getElementById('pd-yt').textContent           = t.pd_yt;
+  document.getElementById('pd-tr').textContent           = t.pd_tr;
+  document.getElementById('pd-ig').textContent           = t.pd_ig;
+  document.getElementById('pd-tk').textContent           = t.pd_tk;
+  document.getElementById('pd-seo').textContent          = t.pd_seo;
+  document.getElementById('pd-ai').textContent           = t.pd_ai;
+  document.getElementById('t-ideas-title').textContent   = t.ideas_title;
+  document.getElementById('t-ideas-sub').textContent     = t.ideas_sub;
+  document.getElementById('t-viral-title').textContent   = t.viral_title;
+  document.getElementById('t-viral-sub').textContent     = t.viral_sub;
+  document.getElementById('btn-strategy-text').textContent = t.build;
+  document.getElementById('t-strat-title').textContent   = t.strat_title;
+  document.getElementById('t-strat-sub').textContent     = t.strat_sub;
+  document.getElementById('l-diagnosis').textContent     = t.l_diagnosis;
+  document.getElementById('l-mode').textContent          = t.l_mode;
+  document.getElementById('l-format').textContent        = t.l_format;
+  document.getElementById('l-ideas-out').textContent     = t.l_ideas;
+  document.getElementById('l-scripts').textContent       = t.l_scripts;
+  document.getElementById('l-pitch').textContent         = t.l_pitch;
+  document.getElementById('t-export').textContent        = t.export;
+  document.getElementById('t-new').textContent           = t.new_strat;
+  document.getElementById('header-meta').textContent     = t.header;
+}
+
+// ═══════════════════════════════════════════════
+//  PRICE SELECTION
+// ═══════════════════════════════════════════════
+function selectPrice(btn, val) {
+  document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedPrice = val;
+}
+
+// ═══════════════════════════════════════════════
+//  STEP INDICATOR
+// ═══════════════════════════════════════════════
+function setStep(n) {
+  for (let i = 0; i < 4; i++) {
+    const dot = document.getElementById('dot-' + i);
+    dot.className = 'step-dot' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 5000);
+}
+
+// ═══════════════════════════════════════════════
+//  PIPELINE HELPERS
+// ═══════════════════════════════════════════════
+function pipeState(id, state, statusText) {
+  const el = document.getElementById('pipe-' + id);
+  const st = document.getElementById('ps-' + id);
+  if (!el || !st) { console.warn('pipeState: element not found for id:', id); return; }
+  el.className = 'pipe-item ' + state;
+  if (state === 'running') {
+    st.innerHTML = '<div class="spinner"></div>';
+  } else {
+    st.textContent = statusText || state;
+  }
+}
+
+function setProgress(pct) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// ═══════════════════════════════════════════════
+//  API CALLS
+// ═══════════════════════════════════════════════
+
+const PROXY = '/api/proxy';
+
+async function fetchYouTube(query) {
+  try {
+    const res  = await fetch(`${PROXY}?action=youtube`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query })
+    });
+    return await res.json();
+  } catch(e) { console.error('YouTube error:', e); return []; }
+}
+
+async function fetchGoogleTrends(keyword, location) {
+  try {
+    const res  = await fetch(`${PROXY}?action=trends`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ keyword, geo: location.split(',')[1]?.trim() || location })
+    });
+    return await res.json();
+  } catch(e) { console.error('SerpAPI error:', e); return []; }
+}
+
+async function fetchInstagram(query) {
+  try {
+    const res  = await fetch(`${PROXY}?action=instagram`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ hashtag: query.replace(/\s+/g,'') })
+    });
+    return await res.json();
+  } catch(e) { console.error('Instagram error:', e); return []; }
+}
+
+async function fetchTikTok(query) {
+  try {
+    const res  = await fetch(`${PROXY}?action=tiktok`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ keyword: query })
+    });
+    return await res.json();
+  } catch(e) { console.error('TikTok error:', e); return []; }
+}
+
+async function fetchDataForSEO(query, location) {
+  try {
+    const res = await fetch(`${PROXY}?action=dataforseo`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query, location })
+    });
+    return await res.json();
+  } catch(e) { console.error('DataForSEO error:', e); return []; }
+}
+
+// ═══════════════════════════════════════════════
+//  CLAUDE AI ANALYSIS
+// ═══════════════════════════════════════════════
+async function analyzeWithClaude(business, rawData) {
+  try {
+    const res = await fetch(`${PROXY}?action=analyze`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ business, researchData: rawData }),
+    });
+    return await res.json();
+  } catch(e) {
+    console.error('Analyze error:', e);
+    return {};
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  START RESEARCH
+// ═══════════════════════════════════════════════
+async function startResearch() {
+  const t = T[lang];
+  const btype = document.getElementById('f-btype').value.trim();
+  const desc  = document.getElementById('f-desc').value.trim();
+  const loc   = document.getElementById('f-loc').value.trim();
+  const best  = document.getElementById('f-best').value.trim();
+
+  if (!btype || !desc || !loc) { showError('intake-error', t.err_fill); return; }
+  if (!selectedPrice)          { showError('intake-error', t.err_price); return; }
+
+  businessData = {
+    type: btype, desc, location: loc,
+    price: selectedPrice, best,
+    ig: document.getElementById('f-ig').value.trim(),
+    tk: document.getElementById('f-tk').value.trim(),
+  };
+
+  // Switch to research view
+  document.getElementById('screen-intake').classList.remove('active');
+  const rs = document.getElementById('research-screen');
+  rs.style.display = 'block';
+  rs.style.visibility = 'visible';
+  rs.style.opacity = '1';
+  // Force DOM update before pipeline calls
+  await new Promise(r => setTimeout(r, 50));
+  setStep(1);
+
+  const query = `${btype} ${desc.slice(0,40)}`;
+
+  // ── Run all APIs with pipeline UI ──
+  try {
+    setProgress(5);
+
+    // YouTube
+    pipeState('yt', 'running');
+    const ytData = await fetchYouTube(query + ' viral');
+    pipeState('yt', 'done', 'Done');
+    setProgress(22);
+
+    // Google Trends
+    pipeState('tr', 'running');
+    const trendsData = await fetchGoogleTrends(btype, loc.split(',')[1]?.trim() || loc);
+    pipeState('tr', 'done', 'Done');
+    setProgress(40);
+
+    // Instagram
+    pipeState('ig', 'running');
+    const igData = await fetchInstagram(btype.split(' ')[0]);
+    pipeState('ig', 'done', 'Done');
+    setProgress(55);
+
+    // TikTok
+    pipeState('tk', 'running');
+    const tkData = await fetchTikTok(query);
+    pipeState('tk', 'done', 'Done');
+    setProgress(68);
+
+    // DataForSEO
+    pipeState('seo', 'running');
+    const seoData = await fetchDataForSEO(query + ' content strategy', loc);
+    pipeState('seo', 'done', 'Done');
+    setProgress(80);
+
+    // Claude analysis
+    pipeState('ai', 'running');
+    researchData = { youtube: ytData, trends: trendsData, instagram: igData, tiktok: tkData, seo: seoData };
+    const analysis = await analyzeWithClaude(businessData, researchData);
+    pipeState('ai', 'done', 'Done');
+    setProgress(100);
+
+    // Small delay then show results
+    await new Promise(r => setTimeout(r, 600));
+    document.getElementById('research-screen').style.display = 'none';
+    showIdeasScreen(analysis, ytData, igData, tkData);
+
+  } catch(err) {
+    console.error(err);
+    pipeState('ai', 'error', 'Error');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  SHOW IDEAS SCREEN
+// ═══════════════════════════════════════════════
+function showIdeasScreen(analysis, ytData, igData, tkData) {
+  setStep(2);
+  document.getElementById('screen-ideas').classList.add('active');
+
+  // Research cards
+  const grid = document.getElementById('research-cards');
+  grid.innerHTML = '';
+
+  // Market diagnosis card
+  if (analysis.market_diagnosis) {
+    grid.innerHTML += `
+      <div class="result-card full">
+        <div class="card-eyebrow">Market Diagnosis</div>
+        <div class="card-title">${analysis.strategy_mode === 'product_led' ? 'Product-Led Strategy' : 'Marketing-Led Strategy'}</div>
+        <div class="card-body">${analysis.market_diagnosis}</div>
+        ${analysis.dominant_format ? `<div class="card-body" style="margin-top:10px;color:var(--text)"><strong>Dominant format:</strong> ${analysis.dominant_format}</div>` : ''}
+      </div>`;
+  }
+
+  // Top trends
+  if (analysis.top_trends?.length) {
+    analysis.top_trends.slice(0,3).forEach(tr => {
+      grid.innerHTML += `
+        <div class="result-card">
+          <div class="card-eyebrow">Trend Signal</div>
+          <div class="card-title">${tr.trend}</div>
+          <div class="card-body">${tr.relevance}</div>
+          <span class="trend-badge ${tr.status}">${tr.status}</span>
+        </div>`;
+    });
+  }
+
+  // YouTube top results
+  if (ytData.length) {
+    const top = ytData[0];
+    grid.innerHTML += `
+      <div class="result-card">
+        <div class="card-eyebrow">YouTube — Top Result</div>
+        <div class="card-title">${top.title}</div>
+        <div class="card-body">${top.channel} · ${top.published || ''}</div>
+        <a class="card-link" href="${top.url}" target="_blank">Watch video →</a>
+      </div>`;
+  }
+
+  // Top Instagram post
+  if (igData.length) {
+    const top = igData.sort((a,b) => b.likes - a.likes)[0];
+    grid.innerHTML += `
+      <div class="result-card">
+        <div class="card-eyebrow">Instagram — Top Post</div>
+        <div class="card-title">${top.mediaType === 'VIDEO' ? 'Reel' : 'Post'}</div>
+        <div class="card-body">${top.caption || 'No caption'}</div>
+        <div class="metric-row">
+          <div class="metric"><div class="metric-val">${fmtNum(top.likes)}</div><div class="metric-key">Likes</div></div>
+          <div class="metric"><div class="metric-val">${fmtNum(top.comments)}</div><div class="metric-key">Comments</div></div>
+        </div>
+        <a class="card-link" href="${top.url}" target="_blank">View post →</a>
+      </div>`;
+  }
+
+  // Top TikTok
+  if (tkData.length) {
+    const top = tkData.sort((a,b) => b.plays - a.plays)[0];
+    grid.innerHTML += `
+      <div class="result-card">
+        <div class="card-eyebrow">TikTok — Top Video</div>
+        <div class="card-title">@${top.author}</div>
+        <div class="card-body">${top.desc || 'No description'}</div>
+        <div class="metric-row">
+          <div class="metric"><div class="metric-val">${fmtNum(top.plays)}</div><div class="metric-key">Plays</div></div>
+          <div class="metric"><div class="metric-val">${fmtNum(top.likes)}</div><div class="metric-key">Likes</div></div>
+        </div>
+        <a class="card-link" href="${top.url}" target="_blank">View video →</a>
+      </div>`;
+  }
+
+  // Viral ideas
+  viralIdeas = analysis.viral_ideas || [];
+  const list = document.getElementById('ideas-list');
+  list.innerHTML = '';
+
+  viralIdeas.forEach((idea, i) => {
+    const div = document.createElement('div');
+    div.className = 'idea-card';
+    div.dataset.index = i;
+    div.onclick = () => toggleIdea(div, i);
+    div.innerHTML = `
+      <div class="idea-platform">${idea.source || 'Research'}</div>
+      <div class="idea-title">${idea.title}</div>
+      <div class="idea-mechanic"><strong>Why it works:</strong> ${idea.mechanic}</div>
+      ${idea.reconstruction_potential ? `<div class="idea-mechanic" style="border-color:var(--accent);margin-top:8px"><strong>For this business:</strong> ${idea.reconstruction_potential}</div>` : ''}
+    `;
+    list.appendChild(div);
+  });
+
+  updateSelectedCount();
+}
+
+function toggleIdea(div, i) {
+  div.classList.toggle('selected');
+  if (selectedIdeas.includes(i)) {
+    selectedIdeas = selectedIdeas.filter(x => x !== i);
+  } else {
+    selectedIdeas.push(i);
+  }
+  updateSelectedCount();
+}
+
+function updateSelectedCount() {
+  const n = selectedIdeas.length;
+  const t = T[lang];
+  document.getElementById('t-selected-count').textContent = n > 0 ? `${n} ${t.selected}` : '';
+}
+
+function fmtNum(n) {
+  if (!n) return '0';
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000)    return (n/1000).toFixed(1) + 'K';
+  return String(n);
+}
+
+// ═══════════════════════════════════════════════
+//  GENERATE STRATEGY
+// ═══════════════════════════════════════════════
+async function generateStrategy() {
+  const t = T[lang];
+  if (selectedIdeas.length === 0) { alert(t.err_select); return; }
+
+  const chosen = selectedIdeas.map(i => viralIdeas[i]);
+
+  document.getElementById('screen-ideas').classList.remove('active');
+  document.getElementById('screen-strategy').classList.add('active');
+  setStep(3);
+
+  // Set streaming cursor on first block
+  const blocks = ['c-diagnosis','c-mode','c-format','c-ideas','c-pitch'];
+  blocks.forEach(id => { document.getElementById(id).textContent = ''; });
+  document.getElementById('scripts-container').innerHTML = '';
+  document.getElementById('c-diagnosis').classList.add('streaming-cursor');
+
+  const systemPrompt = `You are Cipher — the world's most precise content strategy AI. You think like a senior strategist who has worked with hundreds of businesses. You never give generic advice. Every output is specific to the exact business, location, and market data provided.
+
+RULES YOU NEVER BREAK:
+1. Never suggest "post behind the scenes" or "share your story" without a specific mechanic attached
+2. Every content idea must have a hook, a psychological trigger, and a specific execution format
+3. If the market uses talking head videos, your scripts must be talking head scripts — not cinematic
+4. Always explain your strategic reasoning so a beginner can walk into a client meeting and present this with confidence
+5. Scripts must feel natural to speak, not like marketing copy
+6. Arabic output: use MSA (Modern Standard Arabic) only, correct grammar, no dialect`;
+
+  const userPrompt = `Generate a complete content strategy for this business.
+
+BUSINESS:
+${JSON.stringify(businessData, null, 2)}
+
+RESEARCH DATA SUMMARY:
+${JSON.stringify(researchData, null, 2)}
+
+VIRAL MECHANICS THE USER SELECTED (reconstruct these for this business):
+${JSON.stringify(chosen, null, 2)}
+
+Generate the strategy in ${lang === 'ar' ? 'Modern Standard Arabic' : lang === 'fr' ? 'French' : 'English'}.
+
+Structure your response with these exact section markers:
+[DIAGNOSIS]
+2-3 sentences: the market reality, what the audience in ${businessData.location} wants right now, what format is dominating, what the competition is missing.
+
+[MODE]
+State: Product-Led or Marketing-Led. Then 2-3 sentences explaining why. Be specific about what this means for THIS business.
+
+[FORMAT]
+Name the exact content format this business should use and why. Reference what's working in ${businessData.location} specifically. Tell the strategist how to brief the client on this.
+
+[IDEAS]
+5 original content ideas. For each:
+— Idea name (memorable, specific)
+— The mechanic (what psychological trigger this uses)
+— The hook (exact opening words for the video/post)
+— The execution (what happens in the content, step by step)
+— Why this will work for this specific business
+
+[SCRIPTS]
+Write 3 complete, ready-to-shoot scripts based on the top ideas. Each script:
+— Has a clear HOOK (first 3 seconds)
+— Has a BODY (the content)
+— Has a CLOSE (call to action)
+— Format: talking head unless the business clearly needs something else
+— Length: 30-60 seconds when spoken
+
+[PITCH]
+Write exactly what the content strategist should say when presenting this strategy to the client. 5-8 sentences. Confident, clear, professional. This is what a student who just finished a course should say to sound like they've been doing this for 10 years.`;
+
+  try {
+    const res = await fetch(`${PROXY}?action=strategy`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        business: businessData,
+        researchData,
+        chosenIdeas: chosen,
+        lang,
+      }),
+    });
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let currentSection = 'c-diagnosis';
+
+    document.getElementById('c-diagnosis').classList.add('streaming-cursor');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      const chunk = decoder.decode(value);
+      const lines = chunk.split('\n').filter(l => l.startsWith('data: '));
+
+      for (const line of lines) {
+        try {
+          const json = JSON.parse(line.slice(6));
+          if (json.type === 'content_block_delta' && json.delta?.text) {
+            fullText += json.delta.text;
+            parseAndRender(fullText);
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Final render — remove streaming cursor
+    blocks.forEach(id => document.getElementById(id).classList.remove('streaming-cursor'));
+
+  } catch(err) {
+    console.error('Strategy generation error:', err);
+  }
+}
+
+function parseAndRender(text) {
+  const sections = {
+    'DIAGNOSIS': 'c-diagnosis',
+    'MODE':      'c-mode',
+    'FORMAT':    'c-format',
+    'IDEAS':     'c-ideas',
+    'PITCH':     'c-pitch',
+  };
+
+  for (const [tag, elId] of Object.entries(sections)) {
+    const re = new RegExp(`\\[${tag}\\]([\\s\\S]*?)(?=\\[|$)`);
+    const m  = text.match(re);
+    if (m) {
+      const el = document.getElementById(elId);
+      el.classList.remove('streaming-cursor');
+      el.textContent = m[1].trim();
+    }
+  }
+
+  // Scripts
+  const scriptsMatch = text.match(/\[SCRIPTS\]([\s\S]*?)(?=\[PITCH\]|$)/);
+  if (scriptsMatch) {
+    renderScripts(scriptsMatch[1]);
+  }
+
+  // Streaming cursor on active section
+  const lastTag = Object.keys(sections).reverse().find(tag => text.includes(`[${tag}]`));
+  if (lastTag) {
+    const activeEl = document.getElementById(sections[lastTag]);
+    if (activeEl) activeEl.classList.add('streaming-cursor');
+  }
+}
+
+function renderScripts(scriptsText) {
+  const container = document.getElementById('scripts-container');
+  const scripts   = scriptsText.split(/(?=—\s*Script\s*\d|Script\s*\d|\d\.\s)/i).filter(s => s.trim().length > 30);
+
+  container.innerHTML = '';
+  scripts.forEach((script, i) => {
+    const lines = script.trim().split('\n').filter(l => l.trim());
+    const hook  = lines.find(l => /hook/i.test(l)) || lines[0] || '';
+    const body  = lines.slice(1).join('\n');
+
+    container.innerHTML += `
+      <div class="script-card">
+        <div class="script-number">Script ${i + 1}</div>
+        <div class="script-hook">${hook.replace(/hook[:\s]*/i,'').trim()}</div>
+        <div class="script-body">${body}</div>
+      </div>`;
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  EXPORT
+// ═══════════════════════════════════════════════
+function exportStrategy() {
+  const sections = ['c-diagnosis','c-mode','c-format','c-ideas','c-pitch'];
+  let text = `CIPHER — CONTENT STRATEGY\n`;
+  text += `Business: ${businessData.type} — ${businessData.location}\n`;
+  text += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+  text += '═'.repeat(50) + '\n\n';
+
+  const labels = ['MARKET DIAGNOSIS','STRATEGY MODE','DOMINANT FORMAT','CONTENT IDEAS','CLIENT PITCH'];
+  sections.forEach((id, i) => {
+    const content = document.getElementById(id).textContent;
+    if (content) {
+      text += `${labels[i]}\n${'─'.repeat(30)}\n${content}\n\n`;
+    }
+  });
+
+  const scripts = document.getElementById('scripts-container').textContent;
+  if (scripts) text += `SCRIPTS\n${'─'.repeat(30)}\n${scripts}\n`;
+
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `cipher-strategy-${businessData.type.toLowerCase().replace(/\s+/g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ═══════════════════════════════════════════════
+//  RESET
+// ═══════════════════════════════════════════════
+function resetApp() {
+  selectedPrice = '';
+  selectedIdeas = [];
+  researchData  = {};
+  viralIdeas    = [];
+  businessData  = {};
+
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-intake').classList.add('active');
+  document.getElementById('research-screen').style.display = 'none';
+  document.querySelectorAll('.price-btn').forEach(b => b.classList.remove('selected'));
+  ['f-btype','f-desc','f-loc','f-best','f-ig','f-tk'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  setStep(0);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!-- ============================================
+     CIPHER LOGO — MASTER SVG
+     Pure white on transparent background
+     Use this as the base for all versions
+============================================ -->
+
+<!-- LOGO MARK ONLY (transparent bg) -->
+<svg id="cipher-mark" width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- Open C arc — gap on right side ~30deg -->
+  <path
+    fill="none"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    d="M 88.2 34.5 A 38 38 0 1 0 88.2 85.5"
+  />
+  <!-- Floating dot at opening -->
+  <circle fill="white" cx="96" cy="60" r="4.5"/>
+</svg>
+
+
+<!-- FULL LOGO WITH WORDMARK (transparent bg) -->
+<svg id="cipher-logo-full" width="200" height="160" viewBox="0 0 200 160" xmlns="http://www.w3.org/2000/svg">
+  <!-- Mark -->
+  <path
+    fill="none"
+    stroke="white"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    d="M 118.8 24.5 A 38 38 0 1 0 118.8 75.5"
+    transform="translate(-19,0)"
+  />
+  <circle fill="white" cx="101" cy="50" r="4"/>
+  <!-- Wordmark -->
+  <text
+    fill="white"
+    font-family="Inter, sans-serif"
+    font-size="14"
+    font-weight="300"
+    letter-spacing="8"
+    x="100"
+    y="120"
+    text-anchor="middle"
+  >CIPHER</text>
+</svg>
+
+
+<!-- BLACK BACKGROUND VERSION -->
+<svg id="cipher-logo-dark" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="#0a0a0f"/>
+  <path
+    fill="none"
+    stroke="white"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    d="M 238.8 124.5 A 60 60 0 1 0 238.8 215.5"
+    transform="translate(-39,0)"
+  />
+  <circle fill="white" cx="201" cy="170" r="6"/>
+  <text
+    fill="white"
+    font-family="Inter, sans-serif"
+    font-size="18"
+    font-weight="300"
+    letter-spacing="12"
+    x="200"
+    y="290"
+    text-anchor="middle"
+  >CIPHER</text>
+</svg>
+
+
+<!-- WHITE BACKGROUND VERSION -->
+<svg id="cipher-logo-light" width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="400" fill="white"/>
+  <path
+    fill="none"
+    stroke="#0a0a0f"
+    stroke-width="2.5"
+    stroke-linecap="round"
+    d="M 238.8 124.5 A 60 60 0 1 0 238.8 215.5"
+    transform="translate(-39,0)"
+  />
+  <circle fill="#0a0a0f" cx="201" cy="170" r="6"/>
+  <text
+    fill="#0a0a0f"
+    font-family="Inter, sans-serif"
+    font-size="18"
+    font-weight="300"
+    letter-spacing="12"
+    x="200"
+    y="290"
+    text-anchor="middle"
+  >CIPHER</text>
+</svg>
+
+
+<!-- FAVICON 32x32 -->
+<svg id="cipher-favicon" width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <rect width="32" height="32" fill="#0a0a0f" rx="6"/>
+  <path
+    fill="none"
+    stroke="white"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    d="M 23.2 9.5 A 9 9 0 1 0 23.2 22.5"
+    transform="translate(-7,0)"
+  />
+  <circle fill="white" cx="17" cy="16" r="1.8"/>
+</svg>
+
+
+<!-- APP ICON 512x512 -->
+<svg id="cipher-app-icon" width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#0a0a0f" rx="112"/>
+  <path
+    fill="none"
+    stroke="white"
+    stroke-width="10"
+    stroke-linecap="round"
+    d="M 326 166 A 100 100 0 1 0 326 346"
+    transform="translate(-70,0)"
+  />
+  <circle fill="white" cx="258" cy="256" r="14"/>
+</svg>
+
+
+<!-- LOADING ANIMATION VERSION (for use when Claude is generating) -->
+<svg id="cipher-loading" width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    #cipher-loading-arc {
+      transform-origin: 30px 30px;
+      animation: cipher-spin 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    #cipher-loading-dot {
+      animation: cipher-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes cipher-spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes cipher-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+  </style>
+  <g id="cipher-loading-arc">
+    <path
+      fill="none"
+      stroke="white"
+      stroke-width="2.5"
+      stroke-linecap="round"
+      d="M 44.1 17.2 A 18 18 0 1 0 44.1 42.8"
+    />
+  </g>
+  <circle id="cipher-loading-dot" fill="white" cx="46" cy="30" r="2.5"/>
+</svg>
